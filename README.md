@@ -189,6 +189,10 @@ Optional `.env` settings:
 - **Bind to localhost only.** Keep `HOST=` or `HOST=127.0.0.1` in `.env` so the server is not exposed on your network. Do not bind to `0.0.0.0` unless you add authentication.
 - The app runs locally; repository data and API keys stay on your machine unless you use optional GitHub URL inspect (which fetches file listings and content via GitHub API).
 
+## Contributing
+
+We welcome issues and pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report bugs, suggest features, and submit changes.
+
 ## Publishing this repo to GitHub
 
 1. Create a new repository on GitHub (do not initialize with a README if you already have one).
