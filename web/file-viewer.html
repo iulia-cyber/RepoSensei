@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo-Sensei File Viewer</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+    <style>
+      body {
+        overflow: hidden;
+      }
+      .viewer-shell {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        height: 100vh;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .viewer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .viewer-title {
+        font-size: 0.9rem;
+        color: #a7c3cf;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .viewer-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .viewer-code-wrap {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(180, 224, 238, 0.25);
+        background: rgba(8, 18, 25, 0.95);
+      }
+      .viewer-line-nums {
+        flex-shrink: 0;
+        padding: 10px 8px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        color: #7a9ba8;
+        user-select: none;
+        white-space: pre;
+        text-align: right;
+        border-right: 1px solid rgba(180, 224, 238, 0.15);
+      }
+      .viewer-code {
+        flex: 1;
+        margin: 0;
+        padding: 10px 12px;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        overflow: visible;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+          monospace;
+        font-size: 0.8rem;
+        line-height: 1.45;
+        white-space: pre;
+      }
+      .viewer-code code {
+        padding: 0;
+        background: none;
+        white-space: pre;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <div class="viewer-shell">
+      <div class="viewer-header">
+        <div class="viewer-title" id="viewer-title">Loading file...</div>
+        <div class="viewer-actions">
+          <button id="viewer-copy" type="button" class="ghost-button">Copy</button>
+        </div>
+      </div>
+      <div class="viewer-code-wrap">
+        <div id="viewer-line-nums" class="viewer-line-nums" aria-hidden="true"></div>
+        <pre id="viewer-code" class="viewer-code"></pre>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+      function getPathFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get("path") || "";
+        return raw;
+      }
+
+      function getLanguageFromPath(filePath) {
+        const ext = (filePath || "").split(".").pop().toLowerCase();
+        const map = { js: "javascript", mjs: "javascript", cjs: "javascript", ts: "typescript", tsx: "tsx", jsx: "javascript",
+          py: "python", go: "go", rs: "rust", java: "java", rb: "ruby", php: "php", cs: "csharp", cpp: "cpp", c: "c", h: "c",
+          md: "markdown", json: "json", yaml: "yaml", yml: "yaml", html: "htmlbars", css: "css", sql: "sql", sh: "bash" };
+        return map[ext] || "plaintext";
+      }
+
+      function renderCodeWithHighlight(containerEl, content, language) {
+        if (!containerEl) return;
+        containerEl.innerHTML = "";
+        const code = document.createElement("code");
+        code.className = "language-" + (language || "plaintext");
+        code.textContent = content || "";
+        containerEl.appendChild(code);
+        if (typeof window.hljs !== "undefined") {
+          try { window.hljs.highlightElement(code); } catch (e) {}
+        }
+        const lineNums = document.getElementById("viewer-line-nums");
+        if (lineNums) {
+          const n = (content || "").split("\n").length;
+          lineNums.textContent = n ? Array.from({ length: n }, (_, i) => i + 1).join("\n") : "";
+        }
+      }
+
+      async function loadFile() {
+        const path = getPathFromQuery();
+        const titleEl = document.getElementById("viewer-title");
+        const codeEl = document.getElementById("viewer-code");
+        if (!path) {
+          titleEl.textContent = "No file path provided.";
+          codeEl.textContent = "";
+          return;
+        }
+
+        titleEl.textContent = `Loading: ${path}`;
+        try {
+          const response = await fetch("/api/file", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path }),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.error || `Failed to load file: ${response.status}`);
+          }
+          const lines = typeof payload.lineCount === "number" ? ` (${payload.lineCount} lines)` : "";
+          titleEl.textContent = `${path}${lines}`;
+          renderCodeWithHighlight(codeEl, payload.content || "", getLanguageFromPath(path));
+        } catch (error) {
+          titleEl.textContent = "Failed to load file";
+          codeEl.textContent = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      document.getElementById("viewer-copy").addEventListener("click", async () => {
+        const codeEl = document.getElementById("viewer-code");
+        try {
+          await navigator.clipboard.writeText(codeEl.textContent || "");
+        } catch {
+          /* ignore */
+        }
+      });
+
+      void loadFile();
+    </script>
+  </body>
+</html>
+

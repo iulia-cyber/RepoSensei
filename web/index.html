@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Repo-Sensei</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Interactive Codebase Map</p>
+          <h1>Repo-Sensei</h1>
+        </div>
+        <div class="topbar-right">
+          <div id="repo-meta" class="repo-meta">Loading repository metadata...</div>
+          <button id="open-guide" type="button" class="ghost-button header-help-button">Quick guide</button>
+        </div>
+      </header>
+
+      <section class="card control-card">
+        <div class="card-title-row">
+          <h2>Connect Repository</h2>
+          <div class="card-title-actions">
+            <button id="theme-toggle" type="button" class="ghost-button" title="Toggle light/dark theme">Theme</button>
+            <p>Clone with git or inspect a GitHub URL snapshot directly.</p>
+          </div>
+        </div>
+
+        <form id="clone-form" class="inline-form">
+          <input
+            id="repo-url"
+            type="text"
+            placeholder="git@github.com:owner/repo.git or https://github.com/owner/repo.git"
+            autocomplete="off"
+            required
+          />
+          <button type="submit">Clone & Analyze</button>
+        </form>
+
+        <form id="inspect-form" class="inline-form">
+          <input
+            id="inspect-url"
+            type="text"
+            placeholder="https://github.com/owner/repo (no git clone)"
+            autocomplete="off"
+            required
+          />
+          <button type="submit">Inspect URL</button>
+        </form>
+
+        <div class="repo-row">
+          <label for="repo-select" class="visually-hidden">Select Repository</label>
+          <select id="repo-select" title="Select Repository"></select>
+          <button id="use-repo" class="ghost-button" type="button">Use Selected</button>
+          <button id="reindex" class="ghost-button" type="button">Reindex</button>
+          <button id="refresh-graph" class="ghost-button" type="button">Refresh Graph</button>
+        </div>
+        <div class="repo-row repo-row-actions">
+          <button id="sync-embeddings" class="ghost-button" type="button">Sync Embeddings</button>
+          <button id="refresh-db" class="ghost-button" type="button">Refresh DB Status</button>
+        </div>
+
+        <form id="model-form" class="inline-form model-form">
+          <input id="model-id" type="text" placeholder="HF model id (owner/model)" autocomplete="off" />
+          <input id="model-api-key" type="password" placeholder="HF API key (optional)" autocomplete="off" />
+          <input id="openai-model" type="text" placeholder="OpenAI chat model (optional)" autocomplete="off" />
+          <input id="openai-api-key" type="password" placeholder="OpenAI API key (optional)" autocomplete="off" />
+          <input id="embedding-model" type="text" placeholder="Embedding model id (optional)" autocomplete="off" />
+          <button type="submit">Save Model Config</button>
+        </form>
+
+        <p id="repo-status" class="status"></p>
+
+        <details class="repo-summary-details">
+          <summary>Repository summary (languages, main files, suggested questions)</summary>
+          <p id="model-summary-top" class="status model-summary-inline"></p>
+          <div id="repo-summary" class="repo-summary"></div>
+        </details>
+      </section>
+
+      <div id="row-resizer" class="row-resizer" aria-hidden="true" title="Drag to resize"></div>
+
+      <main class="layout">
+        <section class="card chat-card">
+          <div class="card-title-row">
+            <h2>Repository Chat</h2>
+            <p>Ask implementation, architecture, and data-flow questions.</p>
+          </div>
+
+          <div class="chat-status">
+            <p id="db-status" class="status">Loading database status...</p>
+            <details class="recent-chat-panel" open>
+              <summary>Recent Chats</summary>
+              <ul id="recent-chats" class="recent-chat-list"></ul>
+            </details>
+          </div>
+
+          <form id="chat-form" class="chat-form">
+            <input
+              id="question"
+              type="text"
+              placeholder="Where is authentication logic handled?"
+              autocomplete="off"
+              required
+            />
+            <button type="submit">Ask</button>
+            <button id="export-chat-btn" type="button" class="ghost-button" title="Export chat as Markdown">Export chat</button>
+          </form>
+
+          <div id="messages" class="messages"></div>
+        </section>
+
+        <div id="layout-resizer" class="layout-resizer" aria-hidden="true"></div>
+
+        <section class="card graph-card">
+          <div class="card-title-row">
+            <h2>Visual Graph</h2>
+            <div class="graph-card-actions">
+              <p id="model-summary" class="graph-card-model-hint">Model: Retrieval mode</p>
+              <button id="graph-fullscreen-btn" type="button" class="ghost-button graph-fullscreen-btn" title="Show graph and code side-by-side in full screen">
+                Full screen
+              </button>
+            </div>
+          </div>
+
+          <div id="graph-fullscreen-wrap" class="graph-fullscreen-wrap">
+            <div class="graph-fullscreen-header" aria-hidden="true" id="graph-fullscreen-header">
+              <span class="graph-fullscreen-title">Visual Graph</span>
+              <button id="graph-exit-fullscreen-btn" type="button" class="ghost-button graph-exit-fullscreen-btn" title="Exit full screen">
+                Exit full screen
+              </button>
+            </div>
+            <div class="graph-layout-shell">
+            <aside class="graph-sidebar">
+              <h3 class="graph-sidebar-title">Files</h3>
+              <div id="graph-files-resizable" class="graph-files-resizable">
+                <div id="graph-files-scroll" class="graph-files-scroll">
+                  <div id="graph-folder-list" class="graph-folder-list"></div>
+                  <div id="graph-file-list" class="graph-file-list"></div>
+                </div>
+                <div id="files-resize-handle" class="files-resize-handle" title="Drag to resize Files panel"></div>
+              </div>
+            </aside>
+            <div id="graph-resizer" class="graph-resizer" aria-hidden="true"></div>
+            <div class="graph-main">
+              <div class="graph-header-row">
+                <div id="graph-legend" class="legend">Graph edges are inferred from import/require links.</div>
+                <div class="graph-controls">
+                  <div class="search-files-wrap">
+                    <input id="search-files" type="text" placeholder="Search files (path or content)" class="search-files-input" autocomplete="off" />
+                    <ul id="search-results" class="search-results" aria-label="Search results" hidden></ul>
+                  </div>
+                  <label for="graph-layout-select">Layout:</label>
+                  <select id="graph-layout-select">
+                    <option value="radial">Radial</option>
+                    <option value="grid">Grid</option>
+                    <option value="byfolder">By folder</option>
+                  </select>
+                </div>
+              </div>
+              <p id="graph-count" class="graph-count"></p>
+              <svg id="graph" viewBox="0 0 900 620" aria-label="Repository graph"></svg>
+              <div class="file-preview-shell">
+                <div class="file-preview-header">
+                  <span id="file-preview-label" class="file-preview-label">Select a file to preview</span>
+                  <div class="file-preview-actions">
+                    <button id="export-graph-btn" type="button" class="ghost-button file-preview-button" title="Download graph as SVG">Export graph</button>
+                    <button id="open-file-window" type="button" class="ghost-button file-preview-button" disabled>
+                      Open in new window
+                    </button>
+                  </div>
+                </div>
+                <div id="file-preview-wrapper" class="file-preview-wrapper">
+                  <div id="file-preview-line-nums" class="file-preview-line-nums" aria-hidden="true"></div>
+                  <pre id="file-preview" class="file-preview" aria-label="File preview"></pre>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="message-template">
+      <article class="message">
+        <p class="message-role"></p>
+        <p class="message-text"></p>
+        <p class="message-model"></p>
+        <ul class="citation-list"></ul>
+      </article>
+    </template>
+
+    <section id="guide-overlay" class="guide-overlay" aria-label="Repo-Sensei quick guide">
+      <div class="guide-backdrop" onclick="document.getElementById('guide-overlay').classList.remove('visible')"></div>
+      <div class="guide-card" role="dialog" aria-modal="true">
+        <header class="guide-header">
+          <h2>Welcome to Repo-Sensei</h2>
+          <button
+            id="guide-close"
+            type="button"
+            class="ghost-button guide-close-button"
+            onclick="document.getElementById('guide-overlay').classList.remove('visible')"
+          >
+            ×
+          </button>
+        </header>
+        <div class="guide-body">
+          <ol class="guide-list">
+            <li>
+              <strong>Connect Repository</strong>
+              <p>Use the top card to clone a repo or inspect a GitHub URL. You can also switch between previously indexed repos with the dropdown.</p>
+            </li>
+            <li>
+              <strong>Repository Chat</strong>
+              <p>Ask questions about the active codebase (architecture, auth, data flow). Answers include file and line citations so you can jump into the code.</p>
+            </li>
+            <li>
+              <strong>Summary & Visual Graph</strong>
+              <p>See main languages, important files, and a dependency graph. Scroll, zoom with the mouse wheel, and drag the graph to explore crowded areas.</p>
+            </li>
+            <li>
+              <strong>Files & Code Preview</strong>
+              <p>Select a folder on the left, then a file. The graph filters to that folder and a code preview appears below. Click nodes in the graph to preview their files.</p>
+            </li>
+            <li>
+              <strong>Open in New Window</strong>
+              <p>With a file selected, use “Open in new window” to inspect the full file in a separate tab, with an easy copy button.</p>
+            </li>
+            <li>
+              <strong>Resizable Layout</strong>
+              <p>Drag the vertical bars between panels, or the bottom edges of the main cards and scroll areas, to resize the interface to your liking.</p>
+            </li>
+          </ol>
+        </div>
+        <footer class="guide-footer">
+          <button
+            id="guide-skip"
+            type="button"
+            class="ghost-button"
+            onclick="try{localStorage.setItem('repo-sensei-guide-skip','1');}catch(e){}document.getElementById('guide-overlay').classList.remove('visible')"
+          >
+            Don’t show again
+          </button>
+          <button
+            id="guide-ok"
+            type="button"
+            onclick="document.getElementById('guide-overlay').classList.remove('visible')"
+          >
+            Got it
+          </button>
+        </footer>
+      </div>
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

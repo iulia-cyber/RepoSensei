@@ -1,0 +1,29 @@
+# Dependencies and build
+node_modules/
+.npm-cache/
+dist/
+build/
+.build/
+
+# Environment and secrets (never commit)
+.env
+.env.local
+.env.*.local
+
+# Cloned repos and app data
+repos/
+
+# Logs and temp
+*.log
+npm-debug.log*
+yarn-error.log*
+.server.log
+.server-live.log
+tmp.out.log
+tmp.err.log
+
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo

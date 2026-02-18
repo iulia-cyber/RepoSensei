@@ -1,0 +1,29 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "BIGSERIAL",
+    "byfolder",
+    "deepseek",
+    "gitdir",
+    "huggingface",
+    "mistralai",
+    "mtime",
+    "Nemo",
+    "PGDATABASE",
+    "PGHOST",
+    "PGPASSWORD",
+    "PGPORT",
+    "PGUSER",
+    "pgvector",
+    "pyproject",
+    "Qwen",
+    "repo-sensei",
+    "RepoSensei",
+    "sensei",
+    "Sensei",
+    "SENSEI",
+    "streamOpenAIChat",
+    "TIMESTAMPTZ"
+  ]
+}
