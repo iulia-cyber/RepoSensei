@@ -35,7 +35,7 @@ A **local-first** web dashboard that combines **RAG-powered Q&A**, an **interact
 If you forked or renamed the repo, change the clone URL below:
 
 ```bash
-git clone https://github.com/simam/RepoSensei.git
+git clone https://github.com/iulia-cyber/RepoSensei.git
 cd RepoSensei
 cp .env.example .env
 # Edit .env and set PGPASSWORD (and optional API keys).
@@ -192,7 +192,7 @@ Optional `.env` settings:
 ## Publishing this repo to GitHub
 
 1. Create a new repository on GitHub (do not initialize with a README if you already have one).
-2. Update the `repository` URL in `package.json` to your repo (e.g. `https://github.com/simam/RepoSensei.git`).
+2. Update the `repository` URL in `package.json` to your repo (e.g. `https://github.com/iulia-cyber/RepoSensei.git`).
 3. Ensure `.env` is never committed (it is in `.gitignore`). Only `.env.example` should be in the repo.
 
 ## License
